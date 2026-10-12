@@ -1,0 +1,40 @@
+{
+  "name": "@yestoall/editor",
+  "version": "1.0.0",
+  "description": "Editor de texto plano con CodeMirror 6 para apps de Expo, como componente DOM",
+  "repository": "github:yestoall/editor",
+  "license": "MIT",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./dom-editor": "./src/dom-editor.tsx"
+  },
+  "files": [
+    "src",
+    "!src/**/*.test.ts"
+  ],
+  "scripts": {
+    "check": "tsc --noEmit && bun test"
+  },
+  "dependencies": {
+    "@codemirror/autocomplete": "^6.20.3",
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/search": "^6.7.2",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.14"
+  },
+  "peerDependencies": {
+    "expo": "*",
+    "react": "*",
+    "react-dom": "*"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.2",
+    "@types/react": "~19.3.0",
+    "expo": "~58.0.7",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "typescript": "~6.0.3"
+  }
+}
