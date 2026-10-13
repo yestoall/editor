@@ -125,6 +125,9 @@ export const EDITOR_CSS = [
   `.keyboard-slash.is-open{color:var(--accent);background:var(--line)}`,
   // la fila de las skills, encima de la barra, del mismo fondo y con su raya
   `.keyboard-skills{display:flex;align-items:center;gap:6px;height:44px;padding:0 8px;background:var(--surface);border-top:1px solid var(--line);overflow-x:auto;touch-action:pan-x;scrollbar-width:none;user-select:none;-webkit-user-select:none}`,
+  // con una fila encima, la que se redondea es ella: la barra queda recta debajo
+  `.keyboard-skills{border-radius:var(--bar-radius,0) var(--bar-radius,0) 0 0}`,
+  `.keyboard-skills + .keyboard-bar{border-radius:0}`,
   `.keyboard-skills::-webkit-scrollbar{display:none}`,
   `.keyboard-skill{flex:none;height:28px;padding:0 11px;border-radius:14px;display:flex;align-items:center;background:var(--line);color:var(--accent);font-family:var(--font),serif;font-size:13px;white-space:nowrap}`,
   // la fila del ✦: los modos en la condensada del sistema (la SF condensada,

@@ -9,7 +9,7 @@
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands"
 import { Annotation, Compartment, EditorState, Transaction } from "@codemirror/state"
 import { drawSelection, dropCursor, EditorView, keymap, placeholder } from "@codemirror/view"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { clearAll, insertSkill, PARAGRAPH_COMMANDS } from "./commands"
 import { type CompletionLists, ideaCompletions } from "./completions"
@@ -34,7 +34,9 @@ import {
   type FontKey,
   type FontWeight,
 } from "./fonts"
-import KeyboardBar from "./keyboard-bar"
+import type { VocabularyEntry } from "./cita"
+import KeyboardBar, { type TagSuggestions } from "./keyboard-bar"
+import { suggestTags } from "./tag-suggestions"
 import { vocabularyCandidate } from "./vocabulary"
 import { copyOnSelect as copyOnSelectExtension } from "./copy-on-select"
 import { LIST_COMMANDS } from "./lists"
@@ -62,6 +64,9 @@ type Props = {
   // lo que se propone al escribir (las skills y el vocabulario del proyecto),
   // en la web y el Mac; sin ellas, nada (el iPhone tiene las del teclado)
   completions?: CompletionLists
+  // los tags conocidos, de más a menos usados: al escribir un #, la barra del
+  // teclado del iPhone sugiere los que casan (en la web y el Mac, completions)
+  keyboardTags?: VocabularyEntry[]
   readOnly: boolean // se lee pero no se edita (quien lo usa decide cuándo)
   capitalize: boolean // mayúscula al empezar frase; en el iPhone la pone el teclado
   copyOnSelect?: boolean // lo seleccionado, al portapapeles sin ⌘C (web y Mac)
@@ -117,12 +122,22 @@ const NO_FEATURES: FontFeature[] = []
 // El tamaño de letra manda aquí mientras el editor está abierto: llega el
 // guardado al montar y se avisa a nativo de los cambios para que los guarde.
 // Si volviera como prop, un valor atrasado del puente haría saltar el zoom.
+// las mismas sugerencias en el mismo sitio: no hace falta volver a pintar
+const sameSuggestions = (a: TagSuggestions, b: TagSuggestions) =>
+  a === b ||
+  (!!a &&
+    !!b &&
+    a.tag.from === b.tag.from &&
+    a.options.length === b.options.length &&
+    a.options.every((entry, i) => entry.name === b.options[i].name))
+
 export default function DomEditor({
   loadInitialText,
   autoFocus,
   keyboardBar,
   skills = [],
   completions,
+  keyboardTags,
   readOnly,
   capitalize,
   copyOnSelect = false,
@@ -167,6 +182,7 @@ export default function DomEditor({
     rewrite,
     onRewriteResult,
     completions,
+    keyboardTags,
     openUrl,
     onSelectedTermChange,
     scrollBottom,
@@ -178,10 +194,13 @@ export default function DomEditor({
     rewrite,
     onRewriteResult,
     completions,
+    keyboardTags,
     openUrl,
     onSelectedTermChange,
     scrollBottom,
   }
+  // los #tags que la barra del teclado sugiere donde está el cursor
+  const [tagSuggestions, setTagSuggestions] = useState<TagSuggestions>(null)
   // el último término avisado: solo se avisa al cambiar
   const selectedTerm = useRef("")
   const fontSize = useRef(initialFontSize)
@@ -316,6 +335,13 @@ export default function DomEditor({
           EditorView.updateListener.of((update) => {
             const loading = update.transactions.some((tr) => tr.annotation(initialTextLoad))
             if (update.docChanged && !loading) latestProps.current.onChangeText(update.state.doc.toString())
+            const tags = latestProps.current.keyboardTags
+            if (tags && (update.selectionSet || update.docChanged)) {
+              const { empty, head } = update.state.selection.main
+              const next = empty ? suggestTags(update.state.doc.toString(), head, tags, 20) : null
+              // solo si cambia lo que se enseña: cada render cuesta en el webview
+              setTagSuggestions((current) => (sameSuggestions(current, next) ? current : next))
+            }
             const onTerm = latestProps.current.onSelectedTermChange
             if (onTerm && (update.selectionSet || update.docChanged)) {
               // una selección larga no es un término: ni se lee entera
@@ -552,6 +578,7 @@ export default function DomEditor({
           getView={() => view.current}
           haptic={() => void latestProps.current.haptic()}
           skills={skills}
+          tags={tagSuggestions}
           ai={rewrite ? aiAvailability : "unavailable"}
           rewrite={(text, mode) => latestProps.current.rewrite!(text, mode)}
         />

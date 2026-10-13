@@ -4,7 +4,8 @@
 // botones para seleccionar el párrafo, subirlo, bajarlo, deshacer y rehacer.
 // Con «/», encima de la barra sale una fila con las skills más usadas (en el
 // sitio del trackpad no cabían): tocar una la escribe en el cursor y la fila se
-// cierra. Con ✦, en ese mismo sitio, la fila de Corregir y Aclarar: el modelo
+// cierra. Al escribir un #tag en una cita, en ese sitio salen los tags
+// conocidos que casan (tag-suggestions): tocar uno lo completa. Con ✦, en ese mismo sitio, la fila de Corregir y Aclarar: el modelo
 // del iPhone reescribe la selección o el texto entero (rewrite). Ningún
 // botón le roba el foco al editor: el teclado no se cierra.
 
@@ -13,7 +14,9 @@ import type { EditorView } from "@codemirror/view"
 import { type MouseEvent, type PointerEvent, type SyntheticEvent, useEffect, useRef, useState } from "react"
 
 import { useAiRow } from "./ai-row"
+import type { VocabularyEntry } from "./cita"
 import { insertSkill, PARAGRAPH_COMMANDS } from "./commands"
+import { completeTag, type TagInProgress, tagAt } from "./tag-suggestions"
 import { type Availability, MODES, type Rewrite, type RewriteMode, runRewrite } from "./rewrite"
 
 // Los trazos de seis iconos de Lucide (ISC), en línea: importar lucide-react
@@ -55,10 +58,14 @@ function Icon({ name }: { name: keyof typeof ICONS }) {
 const STEP_X = 9 // px de arrastre por carácter
 const STEP_Y = 22 // px de arrastre por línea
 
+// los tags que casan con el que se escribe, y dónde está
+export type TagSuggestions = { tag: TagInProgress; options: VocabularyEntry[] } | null
+
 type Props = {
   getView: () => EditorView | null
   haptic: () => void
   skills: string[] // las más usadas, de más a menos; sin ninguna, no hay «/»
+  tags: TagSuggestions // con un #tag a medio escribir, los que casan
   ai: Availability // sin modelo («unavailable»), no hay ✦
   rewrite: Rewrite
 }
@@ -82,7 +89,7 @@ const BUTTONS = [
   { label: "Rehacer", icon: "redo", run: redo },
 ] as const
 
-export default function KeyboardBar({ getView, haptic, skills, ai, rewrite }: Props) {
+export default function KeyboardBar({ getView, haptic, skills, tags, ai, rewrite }: Props) {
   const drag = useRef({ x: 0, y: 0, dx: 0, dy: 0 })
   const [dragging, setDragging] = useState(false)
   // encima de la barra, una fila: las skills o la del ✦ (nunca las dos). La
@@ -184,6 +191,24 @@ export default function KeyboardBar({ getView, haptic, skills, ai, rewrite }: Pr
     setPicking(false)
   }
 
+  // el tag se busca otra vez al tocar: el cursor puede haberse movido
+  const onTagUp = (name: string) => (event: PointerEvent) => {
+    if (Math.abs(event.clientX - touchStart.current) > TAP_SLOP) return
+    const editor = getView()
+    if (!editor) return
+    const text = editor.state.doc.toString()
+    const tag = tagAt(text, editor.state.selection.main.head)
+    if (!tag) return
+    const { from, to, insert, cursor } = completeTag(text, tag, name)
+    editor.dispatch({
+      changes: { from, to, insert },
+      selection: { anchor: cursor },
+      scrollIntoView: true,
+      userEvent: "input.complete",
+    })
+    haptic()
+  }
+
   const toggleAi = (event: PointerEvent) => {
     event.preventDefault()
     if (busy) return
@@ -250,6 +275,24 @@ export default function KeyboardBar({ getView, haptic, skills, ai, rewrite }: Pr
               onTouchEnd={keepFocus}
             >
               {skill}
+            </div>
+          ))}
+        </div>
+      )}
+      {!aiOpen && !picking && tags && (
+        <div className="keyboard-skills">
+          {tags.options.map(({ name }) => (
+            <div
+              key={name}
+              role="button"
+              tabIndex={-1}
+              className="keyboard-skill"
+              onPointerDown={onSkillDown}
+              onPointerUp={onTagUp(name)}
+              onMouseDown={keepFocus}
+              onTouchEnd={keepFocus}
+            >
+              #{name}
             </div>
           ))}
         </div>
