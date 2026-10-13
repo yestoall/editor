@@ -23,12 +23,22 @@ export const tagAt = (text: string, cursor: number): TagInProgress | null => {
 }
 
 // el tag que se escribe y los que casan, sin tildes ni mayúsculas: primero los
-// que empiezan igual y, dentro, los más usados. El que ya está escrito tal
-// cual no sale. null si no hay nada que sugerir
+// que empiezan igual y, dentro, los más usados. Uno con otras mayúsculas
+// («vida» y «Vida») sale una vez, en su forma más usada, que es la que
+// parseCita guarda. El que ya está escrito tal cual no sale. null si no hay
+// nada que sugerir
 export const suggestTags = (text: string, cursor: number, tags: VocabularyEntry[], limit = 30) => {
   const tag = tagAt(text, cursor)
   if (!tag) return null
-  const options = matchVocabulary(tag.query, tags, limit).filter((entry) => fold(entry.name) !== fold(tag.query))
+  const seen = new Set<string>()
+  const options = matchVocabulary(tag.query, tags, tags.length)
+    .filter((entry) => {
+      const lower = entry.name.toLocaleLowerCase("es")
+      if (seen.has(lower) || fold(entry.name) === fold(tag.query)) return false
+      seen.add(lower)
+      return true
+    })
+    .slice(0, limit)
   return options.length ? { tag, options } : null
 }
 

@@ -65,6 +65,16 @@ describe("suggestTags", () => {
     expect(suggest("Texto\n#|")?.slice(0, 2)).toEqual(["amor", "humor"])
   })
 
+  test("un tag con otras mayúsculas sale una vez, en su forma más usada", () => {
+    const tags = [
+      { name: "vida", count: 120 },
+      { name: "Vida", count: 9 },
+      { name: "vivir", count: 30 },
+    ]
+    const { text, cursor } = at("Texto\n#vi|")
+    expect(suggestTags(text, cursor, tags)?.options.map((entry) => entry.name)).toEqual(["vida", "vivir"])
+  })
+
   test("el que ya está escrito tal cual no se sugiere", () => {
     expect(suggest("Texto\n#amor|")).toBeNull()
     expect(suggest("Texto\n#redes_sociales|")).toBeNull()
