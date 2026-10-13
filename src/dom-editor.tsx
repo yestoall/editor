@@ -82,6 +82,7 @@ type Props = {
   colors: EditorColors // los de la app: el webview no ve sus variables de CSS
   margin?: number // dónde empieza el texto, desde el borde; de serie, 22
   marginEnd?: number // y dónde acaba, desde el de la derecha; de serie, el mismo
+  marginTop?: number // y dónde empieza, desde arriba; la trama sigue por encima. De serie, 4
   keyboardBarRadius?: number // las esquinas de arriba de la barra, como las del teclado; de serie, 0
   onChangeText: (text: string) => Promise<void>
   onFontSizeChange: (size: number) => Promise<void>
@@ -138,6 +139,7 @@ export default function DomEditor({
   colors,
   margin = 22,
   marginEnd = margin,
+  marginTop = 4,
   keyboardBarRadius = 0,
   onChangeText,
   onFontSizeChange,
@@ -229,13 +231,15 @@ export default function DomEditor({
     const root = document.documentElement.style
     root.setProperty("--margin", `${margin}px`)
     root.setProperty("--margin-end", `${marginEnd}px`)
+    root.setProperty("--margin-top", `${marginTop}px`)
     root.setProperty("--bar-radius", `${keyboardBarRadius}px`)
     return () => {
       root.removeProperty("--margin")
       root.removeProperty("--margin-end")
+      root.removeProperty("--margin-top")
       root.removeProperty("--bar-radius")
     }
-  }, [margin, marginEnd, keyboardBarRadius])
+  }, [margin, marginEnd, marginTop, keyboardBarRadius])
 
   //- CodeMirror -
   useEffect(() => {

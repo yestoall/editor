@@ -63,10 +63,11 @@ export const EDITOR_CSS = [
   // trampa del prototipo: el tema base fija font-family y line-height en
   // .cm-scroller con más especificidad que una regla suelta
   `.cm-editor .cm-scroller{font-family:var(--font),serif !important;font-weight:var(--fw);font-feature-settings:var(--ff);line-height:1.6 !important}`,
-  // la misma trampa: el tema base fija el padding de .cm-content. A los lados,
-  // --margin (izquierda) y --margin-end (derecha) menos los 6 que pone
-  // CodeMirror a cada línea: así el texto queda donde el resto de la pantalla
-  `.cm-editor .cm-content{padding:4px calc(var(--margin-end) - 6px) 25vh calc(var(--margin) - 6px) !important;caret-color:transparent}`,
+  // la misma trampa: el tema base fija el padding de .cm-content. Arriba,
+  // --margin-top; a los lados, --margin (izquierda) y --margin-end (derecha)
+  // menos los 6 que pone CodeMirror a cada línea: así el texto queda donde el
+  // resto de la pantalla
+  `.cm-editor .cm-content{padding:var(--margin-top,4px) calc(var(--margin-end) - 6px) 25vh calc(var(--margin) - 6px) !important;caret-color:transparent}`,
   // con la escritura centrada (typewriter), media pantalla arriba y
   // abajo: sin ella, una idea corta cabía entera, no había nada que desplazar
   // y su primera línea no podía bajar al centro (ni la última subir)
