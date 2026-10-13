@@ -114,7 +114,7 @@ export const EDITOR_CSS = [
   `.cm-blockCursor{position:absolute;min-width:1ch;background:var(--accent);color:var(--bg);border-radius:2px;white-space:pre;transition:left 90ms cubic-bezier(.2,.8,.3,1),top 90ms cubic-bezier(.2,.8,.3,1),width 90ms cubic-bezier(.2,.8,.3,1),height 90ms}`,
   `.idea-editor.is-typing .cm-blockCursor{transition:left 40ms linear,top 40ms linear,width 40ms linear}`,
   // barra sobre el teclado del iPhone
-  `.keyboard-bar{display:flex;align-items:center;gap:2px;height:46px;padding:0 8px;background:var(--surface);border-top:1px solid var(--line);color:var(--fg);user-select:none;-webkit-user-select:none}`,
+  `.keyboard-bar{display:flex;align-items:center;gap:2px;height:46px;padding:0 8px;background:var(--surface);border-top:1px solid var(--line);border-radius:var(--bar-radius,0) var(--bar-radius,0) 0 0;color:var(--fg);user-select:none;-webkit-user-select:none}`,
   `.keyboard-pad{flex:1;height:32px;border-radius:9px;background:var(--line);touch-action:none;transition:background 120ms}`,
   `.keyboard-pad.is-dragging{background:color-mix(in srgb,var(--accent) 20%,transparent)}`,
   `.keyboard-button{width:36px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;touch-action:none}`,
