@@ -101,6 +101,28 @@ export type VocabularyEntry = { name: string; count: number }
 
 export type CitasVocabulary = { tags: VocabularyEntry[]; authors: VocabularyEntry[] }
 
+// Los autores y tags de unas citas, con en cuántas sale cada uno: lo mismo que
+// /api/citas/vocabulary, para quien ya tiene las citas (Citas, en su SQLite).
+// Cada forma escrita es una entrada, como en el servidor: juntarlas lo decide
+// quien las usa. De más a menos usados y, a igualdad, por orden alfabético
+export const citasVocabulary = (
+  citas: { author: string | null; tags: string[]; deleted?: boolean }[],
+): CitasVocabulary => {
+  const tags = new Map<string, number>()
+  const authors = new Map<string, number>()
+  const tally = (counts: Map<string, number>, name: string) => counts.set(name, (counts.get(name) ?? 0) + 1)
+  for (const cita of citas) {
+    if (cita.deleted) continue
+    for (const tag of cita.tags) tally(tags, tag)
+    if (cita.author?.trim()) tally(authors, cita.author)
+  }
+  const ranked = (counts: Map<string, number>) =>
+    [...counts]
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "es"))
+  return { tags: ranked(tags), authors: ranked(authors) }
+}
+
 // para comparar: sin mayúsculas, sin tildes y con «_» como espacio
 export const fold = (text: string) =>
   spaced(text)

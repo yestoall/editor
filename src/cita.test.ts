@@ -4,7 +4,7 @@
 
 import { describe, expect, test } from "bun:test"
 
-import { type Cita, draftFromCita, matchVocabulary, parseCita, TAG_PATTERN } from "./cita"
+import { type Cita, citasVocabulary, draftFromCita, matchVocabulary, parseCita, TAG_PATTERN } from "./cita"
 
 const parse = (text: string, author = "", source = "") => parseCita({ text, author, source })
 
@@ -205,5 +205,53 @@ describe("draftFromCita", () => {
     const { text } = draftFromCita({ content: "La importancia del #socialmedia.", author: null, source: null, tags: [] })
     expect(text.replaceAll("\u2060", "")).toBe("La importancia del #socialmedia.")
     expect([...text.matchAll(TAG_PATTERN)]).toEqual([])
+  })
+})
+
+describe("citasVocabulary", () => {
+  test("cuenta en cuántas citas sale cada autor y cada tag, de más a menos usados", () => {
+    expect(
+      citasVocabulary([
+        { author: "Groucho Marx", tags: ["humor", "amor"] },
+        { author: "Groucho Marx", tags: ["humor"] },
+        { author: "Ajo", tags: ["poema", "humor"] },
+      ]),
+    ).toEqual({
+      tags: [
+        { name: "humor", count: 3 },
+        { name: "amor", count: 1 },
+        { name: "poema", count: 1 },
+      ],
+      authors: [
+        { name: "Groucho Marx", count: 2 },
+        { name: "Ajo", count: 1 },
+      ],
+    })
+  })
+
+  // como /api/citas/vocabulary: juntar las formas lo decide quien las usa
+  // (parseCita, sin distinguir mayúsculas)
+  test("cada forma escrita es una entrada, y a igualdad va el orden alfabético", () => {
+    expect(
+      citasVocabulary([
+        { author: null, tags: ["UNIX", "Árbol"] },
+        { author: null, tags: ["unix", "abeto"] },
+      ]).tags,
+    ).toEqual([
+      { name: "abeto", count: 1 },
+      { name: "Árbol", count: 1 },
+      { name: "unix", count: 1 },
+      { name: "UNIX", count: 1 },
+    ])
+  })
+
+  test("sin autor, o con el autor en blanco, no cuenta; las citas borradas, tampoco", () => {
+    expect(
+      citasVocabulary([
+        { author: null, tags: [] },
+        { author: "  ", tags: [] },
+        { author: "Groucho Marx", tags: ["amor"], deleted: true },
+      ]),
+    ).toEqual({ tags: [], authors: [] })
   })
 })
