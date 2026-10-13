@@ -4,7 +4,7 @@
 
 import { describe, expect, test } from "bun:test"
 
-import { matchVocabulary, parseCita } from "./cita"
+import { type Cita, draftFromCita, matchVocabulary, parseCita, TAG_PATTERN } from "./cita"
 
 const parse = (text: string, author = "", source = "") => parseCita({ text, author, source })
 
@@ -145,5 +145,65 @@ describe("parseCita con el vocabulario de Citas", () => {
       source: null,
       tags: ["pasion", "Ternura"],
     })
+  })
+})
+
+describe("draftFromCita", () => {
+  test("el texto, una línea en blanco y los #tags, con «_» por espacio; autor y fuente aparte", () => {
+    expect(
+      draftFromCita({
+        content: "Las redes son la vida moderna",
+        author: "Groucho Marx",
+        source: "Una cena",
+        tags: ["redes sociales", "Madrid"],
+      }),
+    ).toEqual({
+      text: "Las redes son la vida moderna\n\n#redes_sociales #Madrid",
+      author: "Groucho Marx",
+      source: "Una cena",
+    })
+  })
+
+  test("sin tags, solo el texto; sin autor ni fuente, vacíos", () => {
+    expect(draftFromCita({ content: "Nada más", author: null, source: null, tags: [] })).toEqual({
+      text: "Nada más",
+      author: "",
+      source: "",
+    })
+  })
+
+  // abrir una cita en el editor y guardarla sin tocar nada la deja igual
+  const roundTrip = (cita: Cita) => parseCita(draftFromCita(cita))
+  const citas: [string, Cita][] = [
+    ["sin tags, autor ni fuente", { content: "Nada más", author: null, source: null, tags: [] }],
+    [
+      "con todo",
+      { content: "El amor es ciego", author: "Groucho Marx", source: "Una cena", tags: ["amor", "ceguera"] },
+    ],
+    [
+      "tags con espacios, mayúsculas y puntos",
+      { content: "Todo es texto", author: null, source: null, tags: ["redes sociales", "UNIX", "web 2.0"] },
+    ],
+    ["varias líneas", { content: "Primera línea\r\nSegunda línea\n\nTercera", author: "Ajo", source: null, tags: ["poema"] }],
+    [
+      "un # a media frase, que sería un tag",
+      { content: "Postulado nº3 acerca de la importancia del #socialmedia.", author: null, source: null, tags: ["twitter"] },
+    ],
+    ["un # al principio", { content: "#ramoncín es mi community manager favorito.", author: null, source: null, tags: [] }],
+    [
+      "una línea sola de #tags al final del texto",
+      { content: "Anda, vístete y vamos.\r\n#frasesdespuesdeunpolvo", author: null, source: null, tags: ["sexo"] },
+    ],
+    ["un # que no es tag", { content: "Programo en C# y # suelto, #1 y #!", author: null, source: null, tags: [] }],
+  ]
+  for (const [name, cita] of citas)
+    test(`ida y vuelta: ${name}`, () => {
+      expect(roundTrip(cita)).toEqual({ ok: true, cita })
+    })
+
+  test("el # del texto se ve tal cual, pero no se resalta como tag", () => {
+    const { text } = draftFromCita({ content: "La importancia del #socialmedia.", author: null, source: null, tags: [] })
+    expect(text.replaceAll("\u2060", "")).toBe("La importancia del #socialmedia.")
+    expect([...text.matchAll(TAG_PATTERN)]).toEqual([])
   })
 })

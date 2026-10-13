@@ -27,6 +27,11 @@ const TAG = new RegExp(`(?<=^|[\\s(«"“'¿¡])#(${WORD})`, "gu")
 // el mismo, para resaltarlos en el editor cuando escribe una cita
 export const TAG_PATTERN = TAG
 
+// lo que va delante del # de una cita guardada que, en el editor, se leería
+// como tag («del #socialmedia.»): invisible, deja de ser un tag, y parseCita
+// lo quita al guardar
+const NOT_A_TAG = "\u2060"
+
 // las líneas del final hechas solo de #tags (y de espacios). En una línea
 // con texto, el tag se queda como palabra aunque vaya al final: los que no
 // son de la frase van en una línea aparte (decidido el 2026-10-05)
@@ -62,6 +67,7 @@ export const parseCita = (
   const content = text
     .replace(TRAILING_TAGS, "")
     .replace(TAG, (_, word: string) => spaced(word))
+    .replaceAll(NOT_A_TAG, "")
     .trim()
   const cita = {
     content,
@@ -78,6 +84,15 @@ export const parseCita = (
   if (tags.length > CITA_LIMITS.tags) problems.push("tags")
   if (tags.some((tag) => tag.length > CITA_LIMITS.tagLength)) problems.push("tagLength")
   return problems.length ? { ok: false, problems } : { ok: true, cita }
+}
+
+// El borrador con el que el editor abre una cita ya guardada, el inverso de
+// parseCita: el texto, una línea en blanco y sus #tags (con «_» por espacio);
+// autor y fuente aparte. Pasarlo de vuelta por parseCita da la misma cita
+export const draftFromCita = ({ content, author, source, tags }: Cita): CitaDraft => {
+  const text = content.replace(TAG, (tag) => NOT_A_TAG + tag)
+  const line = tags.map((tag) => `#${tag.replaceAll(" ", "_")}`).join(" ")
+  return { text: line ? `${text}\n\n${line}` : text, author: author ?? "", source: source ?? "" }
 }
 
 //- el vocabulario de Citas: tags y autores con sus usos -
