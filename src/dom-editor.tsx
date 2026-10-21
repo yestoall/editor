@@ -40,6 +40,11 @@ import { suggestTags } from "./tag-suggestions"
 import { vocabularyCandidate } from "./vocabulary"
 import { copyOnSelect as copyOnSelectExtension } from "./copy-on-select"
 import { LIST_COMMANDS } from "./lists"
+import { grayCorrection as grayCorrectionExtension } from "./gray-correction-extension"
+import { leftWords } from "./gray-left"
+import { type Lexicon, vocabularyWords } from "./gray-correction"
+import { lexiconWhenIdle } from "./gray-lexicon"
+import { unlearnWord } from "./word-ghost"
 import { deletePairCommand, pairsInput } from "./pairs"
 import { type Availability, type RewriteMode, type RewriteResult, rewriteBusy, runRewrite } from "./rewrite"
 import { selectedText, textHuggingSelection } from "./selection"
@@ -113,11 +118,16 @@ type Props = {
   // baja de ahí, el texto sube antes
   scrollBottom?: number
   typewriter?: boolean // la escritura centrada (typewriter)
+  // la corrección en gris (gray-correction): la carpeta de la que se piden sus
+  // diccionarios (la URL acaba en «/») y, si no hay sugerencias (completions),
+  // el vocabulario que no toca. Sin ella, el subrayado del sistema
+  grayCorrection?: { dictionaries: string; vocabulary?: string[] }
   dom?: import("expo/dom").DOMProps
 }
 
 // sin interruptores, de serie
 const NO_FEATURES: FontFeature[] = []
+
 
 // El tamaño de letra manda aquí mientras el editor está abierto: llega el
 // guardado al montar y se avisa a nativo de los cambios para que los guarde.
@@ -171,6 +181,7 @@ export default function DomEditor({
   searchable = false,
   scrollBottom = 0,
   typewriter = false,
+  grayCorrection,
 }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const view = useRef<EditorView | null>(null)
@@ -186,6 +197,7 @@ export default function DomEditor({
     openUrl,
     onSelectedTermChange,
     scrollBottom,
+    grayCorrection,
   })
   latestProps.current = {
     onChangeText,
@@ -198,6 +210,7 @@ export default function DomEditor({
     openUrl,
     onSelectedTermChange,
     scrollBottom,
+    grayCorrection,
   }
   // los #tags que la barra del teclado sugiere donde está el cursor
   const [tagSuggestions, setTagSuggestions] = useState<TagSuggestions>(null)
@@ -212,6 +225,37 @@ export default function DomEditor({
   const latestTypewriter = useRef(typewriter)
   latestTypewriter.current = typewriter
   const typewriterMode = useRef(new Compartment())
+  // la corrección en gris: su léxico, cuando la página está quieta, y se
+  // enciende o se apaga con el editor abierto (el interruptor de la app)
+  const lexicon = useRef<Lexicon | null>(null)
+  const dictionaries = grayCorrection?.dictionaries
+  const latestDictionaries = useRef(dictionaries)
+  latestDictionaries.current = dictionaries
+  const grayMode = useRef(new Compartment())
+  useEffect(() => {
+    if (!dictionaries) return
+    return lexiconWhenIdle(dictionaries, (loaded) => {
+      lexicon.current = loaded
+    })
+  }, [dictionaries])
+  // encendida, la propuesta y nada del subrayado del sistema, que marca
+  // también la jerga; apagada, el del sistema vuelve
+  const grayExtensions = (on: boolean) =>
+    on
+      ? [
+          grayCorrectionExtension({
+            lexicon: () => lexicon.current,
+            known: () => {
+              const { grayCorrection, completions } = latestProps.current
+              const vocabulary = vocabularyWords(grayCorrection?.vocabulary ?? completions?.words ?? [])
+              return new Set([...vocabulary, ...leftWords.silenced()])
+            },
+            onLeave: (word) => leftWords.leave(word),
+            onAccept: unlearnWord,
+          }),
+          EditorView.contentAttributes.of({ spellcheck: "false" }),
+        ]
+      : []
 
   // la letra cambia por CSS: CodeMirror vuelve a medir y el cursor se redibuja
   const afterFontChange = () => {
@@ -302,6 +346,8 @@ export default function DomEditor({
           cursorCalm,
           spanishTypography({ capitalize }),
           pairsInput, // comillas y paréntesis que se cierran solos
+          // delante de las sugerencias: tras el espacio, el Tab es suyo
+          grayMode.current.of(grayExtensions(!!latestDictionaries.current)),
           // al montar: con listas (web), sugerencias, que leen siempre las últimas
           latestProps.current.completions
             ? ideaCompletions(() => latestProps.current.completions ?? { skills: [], words: [] })
@@ -462,6 +508,12 @@ export default function DomEditor({
       ],
     })
   }, [typewriter])
+
+  //- la corrección en gris, que se enciende y apaga desde Ajustes -
+  useEffect(() => {
+    view.current?.dispatch({ effects: grayMode.current.reconfigure(grayExtensions(!!dictionaries)) })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dictionaries])
 
   //- solo lectura que llega de fuera (la red va y viene) -
   useEffect(() => {

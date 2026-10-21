@@ -47,6 +47,12 @@ export const learnedForm = (word: string) => {
   return word.slice(1) === lower.slice(1) ? lower : word
 }
 
+// Olvidar una errata que se aprendió al cerrarla y luego cambió la corrección
+// en gris con Tab (gray-correction-extension): una vez menos, como al ignorarla
+export const unlearnWord = (word: string) => {
+  if (word.length >= MIN_LEARNED && PLAIN_WORD.test(word)) wordCounts.forget(learnedForm(word))
+}
+
 // La que se propone para lo escrito, o null: empieza igual (sin mayúsculas ni
 // tildes), le falta algo, si es aprendida la has escrito al menos dos veces y,
 // entre las que quedan, la que más usas: aceptada

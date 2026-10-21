@@ -80,6 +80,9 @@ export const EDITOR_CSS = [
   `.cm-editor .cm-placeholder{color:var(--dim);opacity:.6}`,
   // la palabra en gris detrás del cursor (word-ghost), como lo gris del editor vacío
   `.cm-word-ghost{color:var(--dim);opacity:.6}`,
+  // la errata de la corrección en gris (gray-correction), con su onda roja;
+  // la buena va en gris como la palabra en gris
+  `.cm-gray-typo{text-decoration:underline wavy #ff453a;text-decoration-skip-ink:none;text-underline-offset:3px}`,
   `.cm-line.cm-paragraph-active,.cm-editor:not(.cm-focused) .cm-line{color:var(--fg)}`,
   // las skills (/git), en acento también fuera del párrafo activo
   `.cm-line .cm-skill{color:var(--accent)}`,
