@@ -14,6 +14,7 @@ import type { EditorView } from "@codemirror/view"
 import { type MouseEvent, type PointerEvent, type SyntheticEvent, useEffect, useRef, useState } from "react"
 
 import { useAiRow } from "./ai-row"
+import { fixReadyLabel } from "./fix-ready"
 import type { VocabularyEntry } from "./cita"
 import { insertSkill, PARAGRAPH_COMMANDS } from "./commands"
 import { completeTag, type TagInProgress, tagAt } from "./tag-suggestions"
@@ -71,6 +72,7 @@ type Props = {
   tags: TagSuggestions // con un #tag a medio escribir, los que casan
   ai: Availability // sin modelo («unavailable»), no hay ✦
   rewrite: Rewrite
+  fixWords: number // el ✦ encendido (fix-ready): cuántas palabras cambiarían; 0, apagado
 }
 
 const TAP_SLOP = 8 // px que puede moverse el dedo y seguir siendo un toque
@@ -92,7 +94,7 @@ const BUTTONS = [
   { label: "Rehacer", icon: "redo", run: redo },
 ] as const
 
-export default function KeyboardBar({ getView, haptic, skills, tags, ai, rewrite }: Props) {
+export default function KeyboardBar({ getView, haptic, skills, tags, ai, rewrite, fixWords }: Props) {
   const drag = useRef({ x: 0, y: 0, dx: 0, dy: 0 })
   const [dragging, setDragging] = useState(false)
   // encima de la barra, una fila: las skills o la del ✦ (nunca las dos). La
@@ -305,14 +307,15 @@ export default function KeyboardBar({ getView, haptic, skills, tags, ai, rewrite
           <div
             role="button"
             tabIndex={-1}
-            className={`keyboard-button${aiOpen ? " is-open" : ""}`}
-            aria-label={aiOpen ? "Cerrar Corregir y Aclarar" : "Corregir y Aclarar"}
+            className={`keyboard-button${aiOpen ? " is-open" : ""}${fixWords ? " is-ready" : ""}`}
+            aria-label={aiOpen ? "Cerrar Corregir y Aclarar" : fixReadyLabel(fixWords)}
             aria-expanded={aiOpen}
             onPointerDown={toggleAi}
             onMouseDown={keepFocus}
             onTouchEnd={keepFocus}
           >
             <Icon name="pencilSparkles" />
+            {!!fixWords && <span className="keyboard-count">{fixWords}</span>}
           </div>
         )}
         {!!skills.length && (

@@ -46,6 +46,7 @@ import { type Lexicon, vocabularyWords } from "./gray-correction"
 import { lexiconWhenIdle } from "./gray-lexicon"
 import { unlearnWord } from "./word-ghost"
 import { deletePairCommand, pairsInput } from "./pairs"
+import { createFixWatcher } from "./fix-ready"
 import { type Availability, type RewriteMode, type RewriteResult, rewriteBusy, runRewrite } from "./rewrite"
 import { selectedText, textHuggingSelection } from "./selection"
 import { ideaSearch } from "./search"
@@ -104,6 +105,11 @@ type Props = {
   // cada id nuevo, una; el resultado vuelve por onRewriteResult con su id
   rewriteRequest?: { id: number; payload: RewriteMode }
   onRewriteResult?: (id: number, result: RewriteResult | null) => Promise<void>
+  // el ✦ encendido (fix-ready): tras una pausa, Corregir en silencio; sin él
+  // (el interruptor de la app, o sin modelo), nada. Cada cambio, cuántas
+  // palabras cambiarían (0, apagado): la barra del Mac lo pinta
+  fixReady?: boolean
+  onFixReadyChange?: (words: number) => Promise<void>
   clearRequest?: number // cada número nuevo vacía el editor, como un paso que ⌘Z deshace
   blurRequest?: number // cada número nuevo le quita el foco: en el iPhone, baja el teclado
   // una skill pedida desde fuera (la chuleta de la barra de abajo): cada id
@@ -173,6 +179,8 @@ export default function DomEditor({
   rewrite,
   rewriteRequest,
   onRewriteResult,
+  fixReady = false,
+  onFixReadyChange,
   clearRequest,
   blurRequest,
   insertRequest,
@@ -192,6 +200,7 @@ export default function DomEditor({
     haptic,
     rewrite,
     onRewriteResult,
+    onFixReadyChange,
     completions,
     keyboardTags,
     openUrl,
@@ -205,6 +214,7 @@ export default function DomEditor({
     haptic,
     rewrite,
     onRewriteResult,
+    onFixReadyChange,
     completions,
     keyboardTags,
     openUrl,
@@ -212,6 +222,34 @@ export default function DomEditor({
     scrollBottom,
     grayCorrection,
   }
+  //- el ✦ encendido -
+  // El vigilante (fix-ready) pregunta al modelo en las pausas y contesta
+  // Corregir y Aclarar: encendido, Corregir aplica lo ya calculado
+  const latestFixReady = useRef(fixReady)
+  latestFixReady.current = fixReady
+  const [fixWords, setFixWords] = useState(0)
+  // uno por editor, creado una vez
+  const [fixWatcher] = useState(() =>
+    createFixWatcher({
+      rewrite: (text, mode) => {
+        const model = latestProps.current.rewrite
+        return model ? model(text, mode) : Promise.resolve({ ok: false, reason: "unavailable" })
+      },
+      isActive: () => {
+        const editor = view.current
+        return latestFixReady.current && !!editor && editor.hasFocus && !editor.state.readOnly
+      },
+      onChange: (words) => {
+        setFixWords(words)
+        void latestProps.current.onFixReadyChange?.(words)
+      },
+    }),
+  )
+  useEffect(() => {
+    if (!fixReady) fixWatcher.stop()
+  }, [fixReady, fixWatcher])
+  useEffect(() => () => fixWatcher.stop(), [fixWatcher])
+
   // los #tags que la barra del teclado sugiere donde está el cursor
   const [tagSuggestions, setTagSuggestions] = useState<TagSuggestions>(null)
   // el último término avisado: solo se avisa al cambiar
@@ -381,6 +419,14 @@ export default function DomEditor({
           EditorView.updateListener.of((update) => {
             const loading = update.transactions.some((tr) => tr.annotation(initialTextLoad))
             if (update.docChanged && !loading) latestProps.current.onChangeText(update.state.doc.toString())
+            // el ✦ encendido: lo del principio no es nuevo, y lo que entra de
+            // Corregir o Aclarar es la nueva base
+            if (update.docChanged) {
+              const text = update.state.doc.toString()
+              if (loading) fixWatcher.loaded(text)
+              else if (update.transactions.some((tr) => tr.isUserEvent("input.rewrite"))) fixWatcher.rewritten(text)
+              else fixWatcher.edited(text)
+            }
             const tags = latestProps.current.keyboardTags
             if (tags && (update.selectionSet || update.docChanged)) {
               const { empty, head } = update.state.selection.main
@@ -449,15 +495,14 @@ export default function DomEditor({
   //- una reescritura pedida desde fuera (la barra del Mac) -
   useEffect(() => {
     const editor = view.current
-    const rewrite = latestProps.current.rewrite
     if (!rewriteRequest) return
     // sin editor o sin modelo, se contesta igual: la barra no se queda esperando
-    if (!editor || !rewrite) {
+    if (!editor || !latestProps.current.rewrite) {
       void latestProps.current.onRewriteResult?.(rewriteRequest.id, { ok: false, reason: "unavailable" })
       return
     }
     const { id, payload } = rewriteRequest
-    void runRewrite(editor, payload, rewrite).then((result) => latestProps.current.onRewriteResult?.(id, result))
+    void runRewrite(editor, payload, fixWatcher.rewrite).then((result) => latestProps.current.onRewriteResult?.(id, result))
     // solo cuando llega una petición nueva
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rewriteRequest?.id])
@@ -632,7 +677,8 @@ export default function DomEditor({
           skills={skills}
           tags={tagSuggestions}
           ai={rewrite ? aiAvailability : "unavailable"}
-          rewrite={(text, mode) => latestProps.current.rewrite!(text, mode)}
+          rewrite={fixWatcher.rewrite}
+          fixWords={fixWords}
         />
       )}
     </div>

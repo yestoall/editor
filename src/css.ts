@@ -136,6 +136,9 @@ export const EDITOR_CSS = [
   // la fila del ✦: los modos en la condensada del sistema (la SF condensada,
   // del sistema), no en la de las skills
   `.keyboard-button.is-open{color:var(--accent);background:var(--line)}`,
+  // el ✦ encendido (fix-ready): en el acento, con cuántas palabras cambiarían
+  `.keyboard-button.is-ready{width:auto;min-width:36px;gap:3px;padding:0 9px;color:var(--onAccent);background:var(--accent)}`,
+  `.keyboard-count{font-family:system-ui,-apple-system,sans-serif;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}`,
   `.keyboard-mode{gap:6px;padding:0 16px;font-family:system-ui,-apple-system,sans-serif;font-stretch:condensed;font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;transition:opacity 120ms}`,
   `.keyboard-mode.is-off{opacity:.35}`,
   `.keyboard-beat{width:6px;height:6px;border-radius:3px;background:var(--accent);animation:idea-breathe 1.8s ease-in-out infinite}`,
