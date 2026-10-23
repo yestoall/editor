@@ -27,12 +27,15 @@ const ICONS = {
   arrowDown: ["M12 5v14", "m19 12-7 7-7-7"],
   undo: ["M9 14 4 9l5-5", "M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"],
   redo: ["m15 14 5-5-5-5", "M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"],
-  // sparkles, con su círculo como path
-  sparkles: [
-    "M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z",
-    "M20 2v4",
-    "M22 4h-4",
-    "M2 20a2 2 0 1 0 4 0a2 2 0 1 0-4 0",
+  pencilSparkles: [
+    "M10 3H8",
+    "m15.007 5.008 3.987 3.986",
+    "M20 15v4",
+    "M21.174 6.813a2.82 2.82 0 0 0-3.986-3.987L3.842 16.175a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
+    "M22 17h-4",
+    "M4 5v4",
+    "M6 7H2",
+    "M9 2v2",
   ],
 } as const
 
@@ -309,7 +312,7 @@ export default function KeyboardBar({ getView, haptic, skills, tags, ai, rewrite
             onMouseDown={keepFocus}
             onTouchEnd={keepFocus}
           >
-            <Icon name="sparkles" />
+            <Icon name="pencilSparkles" />
           </div>
         )}
         {!!skills.length && (
