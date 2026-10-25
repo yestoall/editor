@@ -1,5 +1,9 @@
 # @yestoall/editor
 
+**[Pruébalo en el navegador](https://www.yestoall.com/jardinero/editor)**, sin
+instalar nada: trae un texto de muestra para ver el resaltado, las listas y la
+corrección en gris.
+
 Un editor de texto plano para apps de Expo, hecho con CodeMirror 6 dentro de
 un componente DOM: el mismo editor en el iPhone (en un WKWebView), en la web y
 en el Mac. Resalta los `#tags`, las `/skills` y las URLs, sigue las listas y
