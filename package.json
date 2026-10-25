@@ -32,6 +32,11 @@
     "react": "*",
     "react-dom": "*"
   },
+  "peerDependenciesMeta": {
+    "expo": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@types/bun": "^1.4.2",
     "@types/react": "~19.3.0",
