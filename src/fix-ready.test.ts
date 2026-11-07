@@ -106,15 +106,15 @@ describe("el ✦ encendido", () => {
     expect(lit).toEqual([])
   })
 
-  test("al seguir escribiendo, se apaga", async () => {
+  test("al seguir escribiendo, sigue encendido con el número de antes: no parpadea", async () => {
     const { watcher, lit, pause } = watcherWith(accents)
     watcher.loaded("")
     watcher.edited(EIGHT)
     await pause()
     watcher.edited(EIGHT + " y")
-    expect(lit).toEqual([1, 0])
+    expect(lit).toEqual([1])
   })
-  test("apagado por seguir escribiendo, la siguiente pausa vuelve a mirar sin esperar a las 8", async () => {
+  test("encendido y con más escrito, la siguiente pausa vuelve a mirar sin esperar a las 8", async () => {
     const { watcher, lit, model, pause } = watcherWith(accents)
     watcher.loaded("")
     watcher.edited(EIGHT)
@@ -122,7 +122,37 @@ describe("el ✦ encendido", () => {
     watcher.edited(EIGHT + " y")
     await pause()
     expect(model.asked).toEqual([EIGHT, EIGHT + " y"])
-    expect(lit).toEqual([1, 0, 1])
+    expect(lit).toEqual([1, 1])
+  })
+  test("si la siguiente pausa ya no encuentra nada, se apaga", async () => {
+    const { watcher, lit, pause } = watcherWith(accents)
+    watcher.loaded("")
+    watcher.edited(EIGHT)
+    await pause()
+    watcher.edited(accents(EIGHT)) // lo corrige a mano
+    await pause()
+    expect(lit).toEqual([1, 0])
+  })
+  test("si el modelo falla en la siguiente pausa, se apaga: no se sabe si lo de antes vale", async () => {
+    const { watcher, lit, pause } = watcherWith((text) => {
+      if (text.endsWith(" y")) throw new Error("sin modelo")
+      return accents(text)
+    })
+    watcher.loaded("")
+    watcher.edited(EIGHT)
+    await pause()
+    watcher.edited(EIGHT + " y")
+    await pause()
+    expect(lit).toEqual([1, 0])
+  })
+  test("encendido con el número de antes, Corregir pregunta al modelo con lo de ahora", async () => {
+    const { watcher, model, pause } = watcherWith(accents)
+    watcher.loaded("")
+    watcher.edited(EIGHT)
+    await pause()
+    watcher.edited(EIGHT + " y")
+    expect(await watcher.rewrite(EIGHT + " y", "fix")).toEqual({ ok: true, text: accents(EIGHT) + " y" })
+    expect(model.asked).toEqual([EIGHT, EIGHT + " y"])
   })
   test("si la idea cambia mientras el modelo piensa, lo que contesta se tira", async () => {
     const { watcher, lit, clock } = watcherWith(accents, { slow: true })

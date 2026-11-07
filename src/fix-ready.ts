@@ -2,7 +2,10 @@
 // El ✦ encendido (GLOSSARY.md de ideas): mientras escribes, tras una pausa
 // con bastante texto nuevo, el modelo mira en silencio si hay algo que
 // corregir en la idea entera, y el ✦ se enciende con cuántas palabras
-// cambiarían. Corregir aplica entonces lo ya calculado, sin esperar.
+// cambiarían. Corregir aplica entonces lo ya calculado, sin esperar. Seguir
+// escribiendo no lo apaga: se queda con el número de antes hasta la pausa
+// siguiente, que lo rehace o lo apaga (encendido y apagado cada pocas teclas
+// parpadeaba, 2026-11-07).
 
 import type { RewriteMode, RewriteResult } from "./rewrite"
 
@@ -62,8 +65,8 @@ export function createFixWatcher({ rewrite, isActive, onChange, schedule = timeo
   let cancelPause: Cancel | undefined
   // encendido: para qué texto, y su corrección
   let ready: { text: string; fixed: string } | null = null
-  // se apagó por seguir escribiendo: lo que había por corregir sigue ahí, y la
-  // siguiente pausa mira sin esperar a las palabras nuevas
+  // encendido y con más escrito desde entonces: lo que había por corregir
+  // sigue ahí, y la siguiente pausa mira sin esperar a las palabras nuevas
   let pending = false
   // la pregunta de la pausa que aún no ha vuelto: Corregir con ese mismo texto
   // espera su respuesta, en vez de preguntar otra vez
@@ -91,8 +94,9 @@ export function createFixWatcher({ rewrite, isActive, onChange, schedule = timeo
     if (round !== started || text !== current) return
     checked = text
     pending = false
-    // solo si cambia alguna palabra: unos espacios de más no son nada que corregir
-    if (result.ok && wordChanges(text, result.text) > 0) light({ text, fixed: result.text })
+    // solo si cambia alguna palabra: unos espacios de más no son nada que
+    // corregir. Si no, o si el modelo falla, se apaga lo de antes
+    light(result.ok && wordChanges(text, result.text) > 0 ? { text, fixed: result.text } : null)
   }
 
   return {
@@ -105,7 +109,8 @@ export function createFixWatcher({ rewrite, isActive, onChange, schedule = timeo
       current = text
       if (ready) pending = true
       if (text === beforeRewrite) [checked, pending] = [text, false]
-      light(null)
+      // encendido, sigue así hasta la pausa; Corregir, con el texto de ahora,
+      // ya no es el que miró y pregunta otra vez (rewrite)
       cancelPause?.()
       cancelPause = schedule(() => void check(text), FIX_PAUSE_MS)
     },
