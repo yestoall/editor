@@ -20,15 +20,17 @@ const key = (key: string, mods: Partial<{ metaKey: boolean; ctrlKey: boolean; sh
 })
 
 describe("rewriteShortcut", () => {
-  test("⌘⇧C corrige y ⌘⇧A aclara, con la tecla como llega con ⇧", () => {
-    expect(rewriteShortcut(key("C", { metaKey: true, shiftKey: true }))).toBe("fix")
-    expect(rewriteShortcut(key("c", { metaKey: true, shiftKey: true }))).toBe("fix")
+  test("⌘⇧O corrige y ⌘⇧A aclara, con la tecla como llega con ⇧", () => {
+    expect(rewriteShortcut(key("O", { metaKey: true, shiftKey: true }))).toBe("fix")
+    expect(rewriteShortcut(key("o", { metaKey: true, shiftKey: true }))).toBe("fix")
     expect(rewriteShortcut(key("A", { metaKey: true, shiftKey: true }))).toBe("clarify")
   })
   test("sin ⌘ o sin ⇧, nada: ⌘C copia y ⇧C escribe", () => {
     expect(rewriteShortcut(key("c", { metaKey: true }))).toBeNull()
     expect(rewriteShortcut(key("C", { shiftKey: true }))).toBeNull()
     expect(rewriteShortcut(key("x", { metaKey: true, shiftKey: true }))).toBeNull()
+    // ⌘⇧C ya no: en la app de Mac de ideas abre la ventana de citas
+    expect(rewriteShortcut(key("C", { metaKey: true, shiftKey: true }))).toBeNull()
   })
 })
 

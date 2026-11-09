@@ -2,7 +2,7 @@
 // La fila del ✦ de Corregir y Aclarar: los dos modos, uno trabajando o un
 // aviso que se cierra solo. Una sola lógica para las dos barras que la pintan:
 // la del teclado del iPhone (keyboard-bar, dentro del webview) y la del
-// Mac, que pinta la app (con ⌘⇧C / ⌘⇧A). Cada una le da con qué ejecutar un
+// Mac, que pinta la app (con ⌘⇧O / ⌘⇧A). Cada una le da con qué ejecutar un
 // modo. La lógica, en nextRow, sin pantalla. Rutas relativas: también la
 // importa el webview, que no pasa por los alias de la app.
 
@@ -44,12 +44,14 @@ export function nextRow(row: AiRow, event: RowEvent, availability: Availability)
 
 type ShortcutKey = { key: string; metaKey: boolean; ctrlKey: boolean; shiftKey: boolean }
 
-// ⌘⇧C corrige y ⌘⇧A aclara (Ctrl en vez de ⌘ fuera del Mac); con ⇧, la tecla
-// llega en mayúscula
+// ⌘⇧O corrige («ortografía») y ⌘⇧A aclara (Ctrl en vez de ⌘ fuera del Mac);
+// con ⇧, la tecla llega en mayúscula. Corregir iba en ⌘⇧C hasta el
+// 2026-11-09, pero en la app de Mac de ideas es el atajo global de las citas
+// y nunca llegaba a la página
 export function rewriteShortcut({ key, metaKey, ctrlKey, shiftKey }: ShortcutKey): RewriteMode | null {
   if (!(metaKey || ctrlKey) || !shiftKey) return null
   const letter = key.toLowerCase()
-  return letter === "c" ? "fix" : letter === "a" ? "clarify" : null
+  return letter === "o" ? "fix" : letter === "a" ? "clarify" : null
 }
 
 const MESSAGE_MS = 4000 // lo que se queda a la vista un aviso
