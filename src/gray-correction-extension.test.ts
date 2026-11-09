@@ -75,6 +75,11 @@ describe("al terminar una palabra con espacio", () => {
   test("con la puntuación pegada, mira la palabra", () => {
     expect(shown(type(create(""), "¿la navegacion? ")).ghost).toBe("navegación")
   })
+  test("la primera de una frase, con mayúscula: al principio y detrás de un punto, sí; a media frase, no", () => {
+    expect(shown(type(create(""), "Queiro ")).ghost).toBe("Quiero")
+    expect(shown(type(create(""), "Ya está. Queiro ")).ghost).toBe("Quiero")
+    expect(shown(type(create(""), "dijo Queiro ")).ghost).toBe("")
+  })
 })
 
 describe("Tab", () => {

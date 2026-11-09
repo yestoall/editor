@@ -48,6 +48,27 @@ describe("qué se propone", () => {
   })
 })
 
+describe("la primera de una frase", () => {
+  // su mayúscula la pone el editor: no dice que sea un nombre
+  const lex = lexicon({ prueba: 3_000_000 }, { prueva: [{ term: "prueba", distance: 1, count: 3_000_000 }] })
+
+  test("al principio de la línea, con su mayúscula", () => {
+    expect(correctionFor("Prueva", lex, none, { previous: "" })?.to).toBe("Prueba")
+  })
+  test("detrás de un punto, una interrogación, una exclamación o unos puntos suspensivos", () => {
+    for (const previous of ["hoy.", "¿vienes?", "¡ya!", "bueno…", "eso.»", "fin.)"])
+      expect(correctionFor("Prueva", lex, none, { previous })?.to).toBe("Prueba")
+  })
+  test("un nombre que el diccionario conoce sigue sin tocarse", () => {
+    const names = lexicon({ madrid: 1_000_000 }, { madrid: [{ term: "madrud", distance: 1, count: 30_000 }] })
+    expect(correctionFor("Madrid", names, none, { previous: "" })).toBeNull()
+  })
+  test("ni uno del vocabulario", () => {
+    const lex2 = lexicon({}, { vercel: [{ term: "vencer", distance: 1, count: 500_000 }] })
+    expect(correctionFor("Vercel", lex2, new Set(["vercel"]), { previous: "" })).toBeNull()
+  })
+})
+
 describe("la tilde de una que existe sin ella", () => {
   test("si la de tilde se usa muchísimo más", () => {
     const lex = lexicon({ circulo: 216_121, círculo: 2_318_943, videos: 101_130, vídeos: 35_491 })
@@ -104,8 +125,12 @@ describe("qué no se toca", () => {
   test("las del vocabulario, sin mayúsculas", () => {
     expect(correctionFor("Herdr", lexicon({}, { herdr: near("herir") }), new Set(["herdr"]))).toBeNull()
   })
-  test("una con mayúscula que no existe: es un nombre", () => {
-    expect(correctionFor("Inguru", lexicon({}, { inguru: near("ingenuo") }), none)).toBeNull()
+  test("una con mayúscula que no existe, a media frase: es un nombre", () => {
+    const lex = lexicon({}, { inguru: near("ingenuo") })
+    expect(correctionFor("Inguru", lex, none, { previous: "con" })).toBeNull()
+    expect(correctionFor("Inguru", lex, none, { previous: "dijo," })).toBeNull()
+    // sin saber lo que va delante, tampoco
+    expect(correctionFor("Inguru", lex, none)).toBeNull()
   })
   test("pero si solo le falta la tilde, sí, con su mayúscula", () => {
     const lex = lexicon({ habría: 7_716_003 }, {}, { habria: ["habría"] })

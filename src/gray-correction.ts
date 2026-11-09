@@ -90,6 +90,13 @@ export function vocabularyWords(terms: string[]): Set<string> {
   return words
 }
 
+// La palabra abre una frase: al principio de la línea (previous vacío) o
+// detrás de un punto, una interrogación, una exclamación o unos puntos
+// suspensivos, aunque los cierre una comilla o un paréntesis. Sin previous no
+// se sabe, y se toma como a media frase
+const ENDS_SENTENCE = /[.!?…][»"'”)]*$/u
+const opensSentence = ({ previous }: Around) => previous !== undefined && (previous === "" || ENDS_SENTENCE.test(previous))
+
 // known: el vocabulario y las que has dejado, en minúsculas
 export function correctionFor(word: string, lexicon: Lexicon, known: Set<string>, around: Around = {}): Correction | null {
   const lower = word.toLowerCase()
@@ -113,8 +120,9 @@ export function correctionFor(word: string, lexicon: Lexicon, known: Set<string>
   // solo le falta la tilde: siempre, también con mayúscula
   const withAccent = lexicon.accentVariants(lower)
   if (withAccent.length === 1) return { to: restore(withAccent[0]) }
-  // con mayúscula y desconocida, un nombre
-  if (capitalized) return null
+  // con mayúscula y desconocida, un nombre; salvo la primera de una frase,
+  // cuya mayúscula pone el editor (2026-11-09: «Prueva» al empezar se quedaba)
+  if (capitalized && !opensSentence(around)) return null
 
   const suggestions = lexicon.suggest(lower)
   if (!suggestions.length) return null
@@ -123,5 +131,5 @@ export function correctionFor(word: string, lexicon: Lexicon, known: Set<string>
   const [top, second] = suggestions.filter((s) => s.distance === distance).sort((a, b) => b.count - a.count)
   if (top.count < MIN_COUNT) return null
   if (second && top.count < second.count * AMBIGUITY) return null
-  return { to: top.term }
+  return { to: restore(top.term) }
 }
