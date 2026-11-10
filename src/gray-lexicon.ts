@@ -23,8 +23,12 @@ export type LexiconFiles = {
   dic: string
 }
 
-// a una letra: a dos, SymSpell tardaba más del triple en prepararse (632 ms
-// frente a 180, medido el 2026-10-21), y en las ideas no había erratas así
+// A una letra. A dos, SymSpell tardaba más del triple en prepararse (632 ms
+// frente a 180, medido el 2026-10-21), y medido otra vez el 2026-11-10 sobre
+// unas 4800 palabras de las ideas no acertó ninguna errata más: solo cambiaba
+// palabras buenas que los diccionarios no tienen, casi siempre derivadas y
+// largas («recalcular» → «calcular», «rediseñamos» → «reseñamos»), así que
+// tampoco vale a dos solo en las largas
 const MAX_DISTANCE = 1
 // las tildes (y la ñ) que se prueban en cada letra
 const ACCENTS: Record<string, string[]> = { a: ["á"], e: ["é"], i: ["í"], o: ["ó"], u: ["ú", "ü"], n: ["ñ"] }
