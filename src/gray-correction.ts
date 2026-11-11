@@ -94,7 +94,9 @@ export function vocabularyWords(terms: string[]): Set<string> {
 // detrás de un punto, una interrogación, una exclamación o unos puntos
 // suspensivos, aunque los cierre una comilla o un paréntesis. Sin previous no
 // se sabe, y se toma como a media frase
-const ENDS_SENTENCE = /[.!?…][»"'”)]*$/u
+// el cierre de una frase, con lo que pueda ir detrás del signo: comillas,
+// paréntesis y los signos del formato de una nota (**, _, note-format)
+const ENDS_SENTENCE = /[.!?…][»"'”)*_]*$/u
 const opensSentence = ({ previous }: Around) => previous !== undefined && (previous === "" || ENDS_SENTENCE.test(previous))
 
 // known: el vocabulario y las que has dejado, en minúsculas

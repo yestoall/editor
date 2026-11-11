@@ -11,7 +11,17 @@ import { Compartment, EditorSelection, EditorState, type TransactionSpec } from 
 
 export type RewriteMode = "fix" | "clarify"
 export type Availability = "ready" | "notReady" | "unavailable"
-export type RewriteFailure = "tooLong" | "refused" | "notReady" | "unavailable" | "changed" | "readOnly" | "failed"
+// format: el modelo devolvió una nota que perdía o movía su formato, y la app
+// no la aplica
+export type RewriteFailure =
+  | "tooLong"
+  | "refused"
+  | "format"
+  | "notReady"
+  | "unavailable"
+  | "changed"
+  | "readOnly"
+  | "failed"
 export type RewriteResult = { ok: true; text: string } | { ok: false; reason: RewriteFailure }
 export type Rewrite = (text: string, mode: RewriteMode) => Promise<RewriteResult>
 
@@ -23,6 +33,7 @@ export const MODES = [
 export const FAILURE_MESSAGES: Record<RewriteFailure, string> = {
   tooLong: "Es demasiado largo para el modelo. Selecciona un trozo.",
   refused: "El modelo no ha querido reescribirlo: el texto sigue como estaba.",
+  format: "El modelo ha cambiado el formato de la nota: el texto sigue como estaba.",
   notReady: "Apple Intelligence aún no está lista. Actívala en los ajustes o espera a que acabe de descargarse.",
   unavailable: "Este dispositivo no tiene Apple Intelligence.",
   changed: "Has cambiado la idea mientras tanto: no se ha tocado.",

@@ -74,6 +74,11 @@ describe("qué se aprende", () => {
   test("las cortas se cierran pero no se aprenden", () => {
     expect(typing("la casa|", " ")).toEqual({ word: "casa", from: 3, learn: false })
   })
+  test("en negrita o en cursiva, la palabra sin los signos del formato", () => {
+    expect(typing("el *desplegable|", "*")).toEqual({ word: "desplegable", from: 4, learn: true })
+    expect(typing("el _desplegable_|", " ")).toEqual({ word: "desplegable", from: 4, learn: true })
+    expect(typing("el __desplegable__|", " ")).toEqual({ word: "desplegable", from: 5, learn: true })
+  })
   test("ni a media palabra, ni lo que no se escribe", () => {
     expect(typing("el desplega|", "b")).toBeNull()
     expect(typing("el desplegable|", " ", "undo")).toBeNull()
@@ -111,6 +116,14 @@ describe("en el editor", () => {
   }
   test("al teclear, sale lo que falta", () => {
     expect(ghostText(typed())).toBe("gable")
+  })
+  test("detrás del _ o el * de una cursiva, también", () => {
+    for (const sign of ["_", "*", "__"]) {
+      const doc = `el ${sign}despl`
+      const state = EditorState.create({ doc, selection: EditorSelection.cursor(doc.length), extensions: wordGhost(() => ["desplegable"]) })
+      const next = state.update({ changes: { from: doc.length, insert: "e" }, selection: EditorSelection.cursor(doc.length + 1), userEvent: "input.type" }).state
+      expect(ghostText(next)).toBe("gable")
+    }
   })
   test("se queda con las transacciones que no tocan el texto ni el cursor", () => {
     const state = typed().update({ effects: StateEffect.appendConfig.of([]) }).state

@@ -26,8 +26,11 @@ const MIN_SEEN = 2
 const MIN_MISSING = 2
 
 // una palabra a medio escribir: con puntos, guiones y barras por dentro, como
-// el vocabulario (rutas, nombres de componentes)
-const WORD_BEFORE = /[\p{L}\p{N}_][\p{L}\p{N}_./-]*$/u
+// el vocabulario (rutas, nombres de componentes). Empieza por letra o número:
+// un _ delante es el signo de una cursiva (el formato de una nota,
+// note-format), como el _ o los __ que la cierran detrás (withoutClosingUnderscores)
+const WORD_BEFORE = /[\p{L}\p{N}][\p{L}\p{N}_./-]*$/u
+const withoutClosingUnderscores = (word: string) => word.replace(/_+$/, "")
 const WORD_CHAR = /[\p{L}\p{N}_]/u
 // las que se aprenden y las que cuentan de la propia idea: solo letras
 const PLAIN_WORD = /^\p{L}+$/u
@@ -102,9 +105,10 @@ export function finishedWord(tr: Transaction): { word: string; from: number; lea
   tr.changes.iterChanges((fromA, toA, _fromB, _toB, inserted) => {
     const typed = inserted.toString()
     if (fromA !== toA || !typed || WORD_CHAR.test(typed[0])) return
-    const before = tr.startState.doc.sliceString(Math.max(0, fromA - 60), fromA).match(WORD_BEFORE)?.[0]
-    if (before)
-      word = { word: before, from: fromA - before.length, learn: before.length >= MIN_LEARNED && PLAIN_WORD.test(before) }
+    const matched = tr.startState.doc.sliceString(Math.max(0, fromA - 60), fromA).match(WORD_BEFORE)?.[0]
+    const before = matched && withoutClosingUnderscores(matched)
+    if (matched && before)
+      word = { word: before, from: fromA - matched.length, learn: before.length >= MIN_LEARNED && PLAIN_WORD.test(before) }
   })
   return word
 }

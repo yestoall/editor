@@ -82,6 +82,14 @@ describe("mayúscula al empezar frase", () => {
     expect(starts("Hecho. ¡|")).toBe(true)
   })
 
+  test("con los signos del formato de una nota: tras una negrita que cierra frase, o dentro de una que la abre", () => {
+    expect(starts("Hola **mundo.** |")).toBe(true)
+    expect(starts("Hola _mundo._ |")).toBe(true)
+    expect(starts("Hecho. **|")).toBe(true)
+    expect(starts("**|")).toBe(true)
+    expect(starts("Hecho, **|")).toBe(false)
+  })
+
   test("en mitad de frase, no", () => {
     expect(starts("Hecho. y |")).toBe(false)
     expect(starts("Si vienes, ¿|")).toBe(false)

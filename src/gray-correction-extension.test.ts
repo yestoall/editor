@@ -75,6 +75,17 @@ describe("al terminar una palabra con espacio", () => {
   test("con la puntuación pegada, mira la palabra", () => {
     expect(shown(type(create(""), "¿la navegacion? ")).ghost).toBe("navegación")
   })
+  test("con los signos del formato de una nota, mira la palabra", () => {
+    for (const text of ["la **navegacion** ", "la __navegacion__ ", "la *navegacion* ", "la _navegacion_ ", "la **navegacion**. "])
+      expect(shown(type(create(""), text))).toEqual({ typo: "navegacion", ghost: "navegación" })
+  })
+  test("tras una negrita que cierra frase, la primera de la siguiente, con mayúscula, sí", () => {
+    expect(shown(type(create(""), "Hola **mundo.** Queiro ")).ghost).toBe("Quiero")
+  })
+  test("Tab cambia la palabra y deja los signos", () => {
+    expect(accept(type(create(""), "lo que **queiro** ")).doc.toString()).toBe("lo que **quiero** ")
+    expect(accept(type(create(""), "lo que _queiro_ ")).doc.toString()).toBe("lo que _quiero_ ")
+  })
   test("la primera de una frase, con mayúscula: al principio y detrás de un punto, sí; a media frase, no", () => {
     expect(shown(type(create(""), "Queiro ")).ghost).toBe("Quiero")
     expect(shown(type(create(""), "Ya está. Queiro ")).ghost).toBe("Quiero")

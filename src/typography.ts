@@ -13,7 +13,9 @@ import { EditorView } from "@codemirror/view"
 const OPENING = { "?": "¿", "!": "¡" } as const
 
 // signos que cierran una frase, y los que pueden ir delante de su primera letra
-const ENDS_SENTENCE = /[.?!…]\s+$/
+// el final de una frase y su espacio, con los signos del formato de una nota
+// que la cierren (**, _, note-format) entre medias
+const ENDS_SENTENCE = /[.?!…][*_]*\s+$/
 const CUTS_SENTENCE = /[.?!…:;]/
 const OPENERS = /[\s«"“‘'([]/
 const WORD_CHAR = /[\p{L}\p{N}]/u
@@ -42,9 +44,9 @@ export const openingMarkAt = (text: string, offset: number, mark: "?" | "!"): nu
 
 // Si la letra que se escribe en `offset` de la línea empieza una frase: al
 // principio de la línea, tras un punto (o ? ! …) y espacio, o tras el ¿ o el ¡
-// que abre una de esas
+// que abre una de esas, o los signos del formato de una nota que la abran
 export const startsSentence = (text: string, offset: number) => {
-  const before = text.slice(0, offset).replace(/[¿¡]$/, "")
+  const before = text.slice(0, offset).replace(/[¿¡*_]+$/, "")
   return /^\s*$/.test(before) || ENDS_SENTENCE.test(before)
 }
 

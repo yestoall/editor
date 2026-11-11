@@ -50,11 +50,12 @@ const configFacet = Facet.define<GrayCorrectionConfig, GrayCorrectionConfig | nu
 
 //- la palabra que se acaba de terminar -
 
-// La palabra de un trozo entre espacios, sin la puntuación de alrededor; o
-// null si no se mira (código, enlaces, #tags, /skills, rutas)
+// La palabra de un trozo entre espacios, sin la puntuación de alrededor ni
+// los signos del formato de una nota (** y __, * y _, note-format); o null si
+// no se mira (código, enlaces, #tags, /skills, rutas)
 const wordOf = (token: string, inCode: boolean) => {
   if (inCode || token.includes("://") || token.startsWith("www.")) return null
-  const [, prefix, core] = token.match(/^([¿¡(«"'“]*)(.*?)([.,;:!?)»"'”…]*)$/u) ?? []
+  const [, prefix, core] = token.match(/^([¿¡(«"'“*_]*)(.*?)([.,;:!?)»"'”…*_]*)$/u) ?? []
   if (!core || /^[#/@`~]/.test(core)) return null
   return { prefix, word: core }
 }
