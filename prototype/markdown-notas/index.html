@@ -1,0 +1,40 @@
+<!doctype html>
+<!--
+  PROTOTIPO, para tirar. Rama prototype/markdown-notas, fuera de main.
+  Pregunta: ¿cómo se siente escribir una nota del Timeline en Markdown con el
+  formato a la vista? Cuatro variantes de cuándo se ven las marcas, con
+  ?variant=A|B|C|D y la barra de abajo (o ← y → fuera del editor).
+  Se arranca con: bun run prototype
+-->
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prototipo · Markdown en las notas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;600&family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="tag">Prototipo</p>
+        <h1 id="variant-name"></h1>
+        <p id="variant-description"></p>
+      </header>
+      <div id="editor"></div>
+      <p class="hint">⌘B negrita · ⌘I cursiva · ⌘K enlace · pegar una URL sobre una selección la enlaza</p>
+      <section id="state"></section>
+    </main>
+    <nav id="switcher" aria-label="Variantes">
+      <button id="prev" type="button" aria-label="Variante anterior">‹</button>
+      <span id="switcher-label"></span>
+      <button id="next" type="button" aria-label="Variante siguiente">›</button>
+    </nav>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

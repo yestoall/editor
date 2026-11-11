@@ -15,7 +15,8 @@
     "!src/**/*.test.ts"
   ],
   "scripts": {
-    "check": "tsc --noEmit && bun test"
+    "check": "tsc --noEmit && bun test",
+    "prototype": "bun --port=4300 prototype/markdown-notas/index.html"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.3",
