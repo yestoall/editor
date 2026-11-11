@@ -2,11 +2,12 @@
 // Las URLs del texto, que se abren como botones: en el Mac y la web, con un
 // clic; en el iPhone, al tocarlas. Por ejemplo, la de un vídeo con su minuto.
 // La puntuación de detrás y un paréntesis que no abrió la URL son de la
-// frase, no de la URL.
+// frase, no de la URL; los asteriscos de detrás, de una negrita o una cursiva
+// que la rodea (el formato de una nota, note-format).
 
 // Una URL acaba en el primer espacio o comilla
 const URL_PATTERN = /https?:\/\/[^\s<>"'`]+/gi
-const TRAILING_PUNCTUATION = /[.,;:!?¡¿…»"']+$/
+const TRAILING_PUNCTUATION = /[.,;:!?¡¿…»"'*]+$/
 
 const count = (text: string, char: string) => text.split(char).length - 1
 

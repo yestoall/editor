@@ -23,6 +23,7 @@ import {
   tagHighlight,
   urlLinks,
 } from "./extensions"
+import { formatHighlight } from "./format-extension"
 import {
   clampFontSize,
   FONT_SIZE,
@@ -79,6 +80,7 @@ type Props = {
   highlightSkills: boolean // las /skills en acento; en las ideas de la IA son texto
   placeholderText?: string // lo gris del editor vacío; de serie, el de una idea
   highlightTags?: boolean // los #tags en acento: al escribir una cita
+  highlightFormat?: boolean // negrita, cursiva y enlaces en el texto, con sus signos en gris: al escribir una nota
   // abrir una URL del texto, que va como un botón: al tocarla (openUrlOnTap,
   // en un enlace del iPhone) o con un clic. Sin ella, las URLs son texto
   openUrl?: (url: string) => Promise<void>
@@ -160,6 +162,7 @@ export default function DomEditor({
   highlightSkills,
   placeholderText = PLACEHOLDER,
   highlightTags = false,
+  highlightFormat = false,
   openUrl,
   openUrlOnTap = false,
   font,
@@ -392,6 +395,7 @@ export default function DomEditor({
             : [],
           highlightSkills ? skillHighlight : [],
           highlightTags ? tagHighlight : [],
+          highlightFormat ? formatHighlight : [],
           // al montar, como las sugerencias: un enlace las tiene desde el principio
           latestProps.current.openUrl
             ? urlLinks({ open: (url) => void latestProps.current.openUrl?.(url), onTap: openUrlOnTap })

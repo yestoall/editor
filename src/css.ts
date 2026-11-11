@@ -86,6 +86,12 @@ export const EDITOR_CSS = [
   `.cm-line.cm-paragraph-active,.cm-editor:not(.cm-focused) .cm-line{color:var(--fg)}`,
   // las skills (/git), en acento también fuera del párrafo activo
   `.cm-line .cm-skill{color:var(--accent)}`,
+  // el formato de una nota (format-extension): la negrita, dos pesos por encima
+  // del de la letra; los signos, apagados como lo gris del editor vacío
+  `.cm-line .cm-format-bold{font-weight:min(calc(var(--fw) + 200),900)}`,
+  `.cm-line .cm-format-italic{font-style:italic}`,
+  `.cm-line .cm-format-link{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}`,
+  `.cm-line .cm-format-sign{color:var(--dim);opacity:.6;font-weight:var(--fw);font-style:normal;text-decoration:none}`,
   // las URLs, como botones (se abren con un clic, o al tocarlas en un enlace
   // del iPhone): en una pastilla, y con el ratón encima, en el acento. El
   // margen de la pastilla es una sombra, no padding: el padding movería el

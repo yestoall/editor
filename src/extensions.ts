@@ -66,6 +66,7 @@ class BlockCursor implements LayerMarker {
     readonly height: number,
     readonly char: string,
     readonly width: number | null,
+    readonly look: LetterLook,
   ) {}
 
   draw() {
@@ -87,7 +88,9 @@ class BlockCursor implements LayerMarker {
       this.top === other.top &&
       this.height === other.height &&
       this.char === other.char &&
-      this.width === other.width
+      this.width === other.width &&
+      this.look.weight === other.look.weight &&
+      this.look.style === other.look.style
     )
   }
 
@@ -99,8 +102,27 @@ class BlockCursor implements LayerMarker {
     // el de la letra; sin ella, el mínimo del CSS
     dom.style.width = this.width === null ? "" : `${this.width}px`
     dom.style.minWidth = this.width === null ? "" : "0"
+    // la copia de la letra, con su peso y su estilo: en una nota, la de una
+    // negrita o una cursiva (format-extension) no sale normal
+    dom.style.fontWeight = this.look.weight
+    dom.style.fontStyle = this.look.style
     dom.textContent = this.char
   }
+}
+
+type LetterLook = { weight: string; style: string }
+
+// sin letra debajo, o sin elemento que mirar: lo que ponga el CSS
+const PLAIN_LOOK: LetterLook = { weight: "", style: "" }
+
+// el peso y el estilo de la letra que empieza en pos; sin letra, los de serie
+const lookAt = (view: EditorView, pos: number): LetterLook => {
+  const { node, offset } = view.domAtPos(pos, 1)
+  const child = node.childNodes[offset]
+  const element = node.nodeType === Node.TEXT_NODE ? node.parentElement : child instanceof HTMLElement ? child : (node as HTMLElement)
+  if (!element) return PLAIN_LOOK
+  const { fontWeight, fontStyle } = getComputedStyle(element)
+  return { weight: fontWeight, style: fontStyle }
 }
 
 // la letra (o el emoji, entero) que queda bajo el cursor; al final de línea, nada
@@ -143,7 +165,8 @@ export const blockCursor = layer({
     // (una línea que se parte justo ahí no tiene a quién medir)
     const next = char ? view.coordsAtPos(main.head + char.length, -1) : null
     const width = next && next.top === coords.top && next.left > coords.left ? (next.left - coords.left) / view.scaleX : null
-    return [new BlockCursor(left, top - (height - glyph) / 2, height, char, width)]
+    const look = char ? lookAt(view, main.head) : PLAIN_LOOK
+    return [new BlockCursor(left, top - (height - glyph) / 2, height, char, width, look)]
   },
 })
 
