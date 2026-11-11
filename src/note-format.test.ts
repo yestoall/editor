@@ -1,7 +1,7 @@
 //· note-format tests ·
 // La regla del formato de una nota del Timeline (ADR 0020 de ideas). Esta
-// tabla es la misma, letra a letra, en yestoall.com: si cambia un caso, cambia
-// en los dos sitios.
+// tabla es la misma, letra a letra, en @yestoall/editor y en yestoall.com: si
+// cambia un caso, cambia en los dos.
 
 import { describe, expect, test } from "bun:test"
 

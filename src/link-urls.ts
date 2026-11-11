@@ -3,7 +3,9 @@
 // clic; en el iPhone, al tocarlas. Por ejemplo, la de un vídeo con su minuto.
 // La puntuación de detrás y un paréntesis que no abrió la URL son de la
 // frase, no de la URL; los asteriscos de detrás, de una negrita o una cursiva
-// que la rodea (el formato de una nota, note-format).
+// que la rodea (el formato de una nota, note-format). La parte de urlRanges,
+// con sus tests, va copiada en yestoall.com (server/timeline), junto a
+// note-format: si cambia, cambia en los dos.
 
 // Una URL acaba en el primer espacio o comilla
 const URL_PATTERN = /https?:\/\/[^\s<>"'`]+/gi

@@ -1,6 +1,8 @@
 //· note-format ·
 // La regla del formato de una nota del Timeline (ADR 0020 de ideas): la
-// negrita, la cursiva y los enlaces en el texto, escritos con signos.
+// negrita, la cursiva y los enlaces en el texto, escritos con signos. Va
+// copiada letra a letra, con su tabla de tests, en @yestoall/editor y en
+// yestoall.com (server/timeline): si cambia, cambia en los dos.
 
 import { urlRanges } from "./link-urls"
 
