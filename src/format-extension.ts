@@ -1,13 +1,16 @@
 //· format-extension ·
 // El formato de una nota del Timeline mientras escribes (ADR 0020 de ideas):
-// cada trozo con su negrita, su cursiva o su enlace, y sus signos en gris.
-// Nada se esconde ni se reemplaza: el texto no se mueve al pasar el cursor, y
-// el cursor de bloque mide letras que no cambian de ancho. Sobre el texto
-// entero, que es corto (como mucho, el de una nota).
+// cada trozo con su negrita, su cursiva o su enlace, y sus signos en gris, y
+// ⌘B, ⌘I, ⌘K y pegar una URL para darlo. Nada se esconde ni se reemplaza: el
+// texto no se mueve al pasar el cursor, y el cursor de bloque mide letras que
+// no cambian de ancho. Sobre el texto entero, que es corto (como mucho, el de
+// una nota).
 
-import { type Range } from "@codemirror/state"
-import { Decoration, type DecorationSet, type EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view"
+import { Prec, type Range } from "@codemirror/state"
+import { Decoration, type DecorationSet, EditorView, keymap, ViewPlugin, type ViewUpdate } from "@codemirror/view"
 
+import { linkSelection, pasteLink, toggleBold, toggleItalic } from "./format-commands"
+import { orDefault } from "./lists"
 import { type FormatKind, formatSpans } from "./note-format"
 
 const contentMark: Record<FormatKind, Decoration> = {
@@ -56,3 +59,25 @@ export const formatHighlight = ViewPlugin.fromClass(
   },
   { decorations: (plugin) => plugin.decorations },
 )
+
+//- dar formato con el teclado -
+
+// ⌘B, ⌘I y ⌘K, delante del keymap de serie (que usa ⌘I para seleccionar), y
+// pegar una URL sobre una selección (format-commands). En solo lectura, nada
+export const formatKeys = [
+  Prec.high(
+    keymap.of([
+      { key: "Mod-b", run: orDefault(toggleBold), preventDefault: true },
+      { key: "Mod-i", run: orDefault(toggleItalic), preventDefault: true },
+      { key: "Mod-k", run: orDefault(linkSelection), preventDefault: true },
+    ]),
+  ),
+  EditorView.domEventHandlers({
+    paste(event, view) {
+      const pasted = event.clipboardData?.getData("text/plain") ?? ""
+      if (!orDefault((state) => pasteLink(state, pasted))(view)) return false
+      event.preventDefault()
+      return true
+    },
+  }),
+]

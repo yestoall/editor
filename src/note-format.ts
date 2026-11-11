@@ -29,7 +29,7 @@ const PATTERNS: { kind: FormatKind; re: RegExp; open: number; close: (m: RegExpM
   },
   { kind: "bold", re: /\*\*(?=\S)([^\n]*?\S)\*\*/gu, open: 2, close: () => 2 },
   { kind: "bold", re: /(?<![\p{L}\p{N}_])__(?=\S)([^\n]*?\S)__(?![\p{L}\p{N}_])/gu, open: 2, close: () => 2 },
-  { kind: "italic", re: /(?<![*\p{L}\p{N}_])\*(?=[^\s*])([^*\n]*?[^\s*])\*(?!\*)/gu, open: 1, close: () => 1 },
+  { kind: "italic", re: /(?<![*\p{L}\p{N}])\*(?=[^\s*])([^*\n]*?[^\s*])\*(?!\*)/gu, open: 1, close: () => 1 },
   { kind: "italic", re: /(?<![\p{L}\p{N}_])_(?=[^\s_])([^_\n]*?[^\s_])_(?![\p{L}\p{N}_])/gu, open: 1, close: () => 1 },
 ]
 

@@ -23,7 +23,7 @@ import {
   tagHighlight,
   urlLinks,
 } from "./extensions"
-import { formatHighlight } from "./format-extension"
+import { formatHighlight, formatKeys } from "./format-extension"
 import {
   clampFontSize,
   FONT_SIZE,
@@ -395,7 +395,7 @@ export default function DomEditor({
             : [],
           highlightSkills ? skillHighlight : [],
           highlightTags ? tagHighlight : [],
-          highlightFormat ? formatHighlight : [],
+          highlightFormat ? [formatHighlight, formatKeys] : [], // y ⌘B, ⌘I, ⌘K y pegar una URL
           // al montar, como las sugerencias: un enlace las tiene desde el principio
           latestProps.current.openUrl
             ? urlLinks({ open: (url) => void latestProps.current.openUrl?.(url), onTap: openUrlOnTap })

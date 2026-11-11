@@ -69,6 +69,13 @@ const CASES: { name: string; text: string; spans: string[]; plain: string; post:
     post: "muy rico hoy",
   },
   {
+    name: "una cursiva con * dentro de una negrita con __, y al revés",
+    text: "__*mucho*__ y **_poco_**",
+    spans: ["bold: __*mucho*__", "italic: *mucho*", "bold: **_poco_**", "italic: _poco_"],
+    plain: "mucho y poco",
+    post: "mucho y poco",
+  },
+  {
     name: "con el mismo signo dentro, solo la de dentro",
     text: "*muy **rico** hoy*",
     spans: ["bold: **rico**"],
